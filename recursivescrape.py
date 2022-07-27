@@ -11,7 +11,7 @@ import json
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument(
     "-c",
-    "--cookie",
+    "--cookies",
     help="Cookie values as needed in the json format.",
     default="{}",
 )
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         ncols=1,
         bar_format="{desc} {n_fmt}/{total_fmt}",
     )
-    cookie = json.loads(args.cookie)
+    cookies = json.loads(args.cookies)
 
     # restore progress if needed
     if args.resume:
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         while pending:
             # inspect a page
             url, _ = pending.popitem()  # pop entry, ignore value as it is irrelevant
-            req = requests.get(url, cookies=cookie)
+            req = requests.get(url, cookies=cookies)
             pbar.set_description(prefix_start + url)
             if args.veryverbose:
                 tqdm.write(f"scraping {url}")
