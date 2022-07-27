@@ -18,6 +18,8 @@ pip install -r requirements.txt
 
 If a binary has been precompiled for your platform, it will be available in the releases section and no further steps are required.
 
+Binaries are generated using Nuitka.
+
 ## Usage
 Run the relevant line with any additional flags:
 ```bash
