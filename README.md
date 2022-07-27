@@ -19,18 +19,9 @@ pip install -r requirements.txt
 If a binary has been precompiled for your platform, it will be available in the releases section and no further steps are required.
 
 ## Usage
-**Source:**
-Run the following line with any additional flags:
-```bash
-python recursivescrape.py [flags]
-```
-**Binary:**
 Run the relevant line with any additional flags:
 ```bash
-recursivescrape [flags]
-```
-```bash
-recursivescrape.exe [flags]
+recursivescrape[.py/.exe/Linux64/arm] [flags]
 ```
 
 The available flags are:
@@ -43,11 +34,12 @@ The available flags are:
 |-o --overwrite|Download and overwrite existing files. If not added, files that already exist will be skipped.||
 |-v --verbose|Increase output detail.||
 |-vv --veryverbose|Further increase output detail, overrides --verbose.||
-|-r --resume|Resume previous progress from file PROGRESS_FILE, will ignore URL if file is found.||
+|-r --resume|Resume previous progress from file PROGRESS_FILE, will ignore URL and no-recursion arguments if file is found.||
 |--id|Component id that contains the files and following paths, on empty searches the whole page, unrecommended to leave empty.|""|
 |-bi --backup-interval|Saves the current progress every BACKUP_INTERVAL pages, 0 will disable automatic backup.|500|
 |-f --progress-file|The file to save and load progress with.|"progress.dat"|
 |-l --dont-prevent-loops|Save memory by not remembering past pages but increase the chance of checking pages multiple times, do not add if there are any loops in the directory. Changing this flag between resumed runs results in undefined behaviour.||
+|-nr --no-recursion|"Only download files from the given pages and do not follow links recursively"||
 
 
 
