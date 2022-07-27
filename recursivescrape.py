@@ -19,7 +19,7 @@ parser.add_argument("-u", "--url", help="URL to start from.", required=True)
 parser.add_argument(
     "-o",
     "--overwrite",
-    help="Download and overwrite existing files.",
+    help="Download and overwrite existing files. If not added, files that already exist will be skipped.",
     action="store_true",
 )
 parser.add_argument(
