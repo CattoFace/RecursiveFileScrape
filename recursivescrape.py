@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+"""Recursively downloads files from a webpage and links within that page."""
+
+__author__ = "Barr Israel"
+__version__ = "1"
+
 import requests
 import sys
 import os
@@ -34,7 +40,7 @@ parser.add_argument(
 parser.add_argument(
     "-r",
     "--resume",
-    help="Resume previous progress from file PROGRESS_FILE, will ignore url argument if file is found.",
+    help="Resume previous progress from file PROGRESS_FILE, will ignore url and no-recursion arguments if file is found.",
     action="store_true",
 )
 parser.add_argument(
@@ -61,6 +67,12 @@ parser.add_argument(
     help="Save memory by not remembering past pages but increase the chance of checking pages multiple times, do not add if there are any loops in the directory. Changing this flag between resumed runs results in undefined behaviour.",
     action="store_true",
 )
+parser.add_argument(
+    "-nr",
+    "--no-recursion",
+    help="Only download files from the given pages and do not follow links recursively",
+    action="store_true",
+)
 
 
 def save_progress(pending, completed_dict, completed_pages, fileName):
@@ -77,7 +89,6 @@ if __name__ == "__main__":
     pending = {}
     completed = {}
     dirname, src_filename = os.path.split(os.getcwd())
-    print(src_filename)
     print("Total pages count will increase as more pages are found")
     url = ""
     prefix_start = "Pages, current page: "
@@ -150,10 +161,11 @@ if __name__ == "__main__":
                     elif args.verbose or args.veryverbose:
                         tqdm.write(f"{entry.text} already exists, skipping.")
                 elif not (
+                    args.no_recursion,
                     url.startswith(entry["href"])
                     or "/./" in entry["href"]
                     or "/../" in entry["href"]
-                    or entry["href"] in completed
+                    or entry["href"] in completed,
                 ):  # to prevent loops
                     pending[entry["href"]] = True  # add to pending
                     pbar.total += 1
