@@ -21,7 +21,7 @@ If a binary has been precompiled for your platform, it will be available in the 
 Binaries are generated using Nuitka.
 
 ## Usage
-Run the relevant line with any additional flags:
+Run the relevant file with any additional flags:
 ```bash
 recursivescrape[.py/.exe/Linux64/arm] [flags]
 ```
