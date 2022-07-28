@@ -44,6 +44,7 @@ The available flags are:
 |-nr --no-recursion|"Only download files from the given pages and do not follow links recursively"||
 
 ## To Do
+- Allow method calling to download instead of standalone only. 
 - Utilize async to parallel requests and speed up the process.  
 
 ## Contributing
