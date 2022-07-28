@@ -44,7 +44,7 @@ The available flags are:
 |-nr --no-recursion|"Only download files from the given pages and do not follow links recursively"||
 
 ## To Do
-- Utilize multiproccessing to parallel requests and speed up the process.  
+- Utilize async to parallel requests and speed up the process.  
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
