@@ -3,7 +3,7 @@
 A Python script that recursively downloads files from a webpage and links within that page.
 Single page downloading and page component filter and other configurations are available.
 
-## Installation
+## Setup
 
 **Source:**
 
