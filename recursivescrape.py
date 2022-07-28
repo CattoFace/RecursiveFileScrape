@@ -101,7 +101,6 @@ if __name__ == "__main__":
         bar_format="{desc} {n_fmt}/{total_fmt}",
     )
     cookies = json.loads(args.cookies)
-
     # restore progress if needed
     if args.resume:
         try:
@@ -161,12 +160,12 @@ if __name__ == "__main__":
                     elif args.verbose or args.veryverbose:
                         tqdm.write(f"{entry.text} already exists, skipping.")
                 elif not (
-                    args.no_recursion,
-                    url.startswith(entry["href"])
+                    args.no_recursion
+                    or url.startswith(entry["href"])
                     or "/./" in entry["href"]
                     or "/../" in entry["href"]
-                    or entry["href"] in completed,
-                ):  # to prevent loops
+                    or entry["href"] in completed
+                ):
                     pending[entry["href"]] = True  # add to pending
                     pbar.total += 1
                     if args.veryverbose:
