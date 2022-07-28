@@ -43,7 +43,8 @@ The available flags are:
 |-l --dont-prevent-loops|Save memory by not remembering past pages but increase the chance of checking pages multiple times, do not add if there are any loops in the directory. Changing this flag between resumed runs results in undefined behaviour.||
 |-nr --no-recursion|"Only download files from the given pages and do not follow links recursively"||
 
-
+## To Do
+- Utilize multiproccessing to parallel requests and speed up the process.  
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
