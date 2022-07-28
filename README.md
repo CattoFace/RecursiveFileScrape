@@ -41,8 +41,7 @@ The available flags are:
 |-bi --backup-interval|Saves the current progress every BACKUP_INTERVAL pages, 0 will disable automatic backup.|500|
 |-f --progress-file|The file to save and load progress with.|"progress.dat"|
 |-l --dont-prevent-loops|Save memory by not remembering past pages but increase the chance of checking pages multiple times, do not add if there are any loops in the directory. Changing this flag between resumed runs results in undefined behaviour.||
-|-nr --no-recursion|"Only download files from the given pages and do not follow links recursively"||
-
+|-nr --no-recursion|Only download files from the given pages and do not follow links recursively||
 ## To Do
 - Allow method calling to download instead of standalone only. 
 - Utilize async to parallel requests and speed up the process.  
