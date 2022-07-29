@@ -14,18 +14,33 @@ import pickle
 import json
 
 
-def __save_progress(pending: dict, completed_dict: dict, completed_pages: int, fileName: str):
+def __save_progress(
+    pending: dict, completed_dict: dict, completed_pages: int, fileName: str
+):
     """saves current progress to a file"""
     with open(fileName, "wb") as f:
         pickle.dump(pending, f)
         pickle.dump(completed_dict, f)
-        pickle.dump(pbar.n, f)
+        pickle.dump(completed_pages, f)
 
 
-def scrape(url: str, download_path: str=None, cookies: dict={},id: str="", overwrite: bool=False,resume: bool=False, progress_file: str="progress.dat", prevent_loops: bool=True, recursion: bool=True,verbosity: int=0):
+def scrape(
+    root_url: str,
+    download_path: str = None,
+    cookies: dict = {},
+    id: str = "",
+    overwrite: bool = False,
+    resume: bool = False,
+    progress_file: str = "progress.dat",
+    dont_prevent_loops: bool = True,
+    no_recursion: bool = False,
+    backup_interval: int = 0,
+    verbosity: int = 0,
+):
     pending = {}
     completed = {}
-    if not download_path: download_path = os.getcwd()
+    if not download_path:
+        download_path = os.getcwd()
     print("Total pages count will increase as more pages are found")
     url = ""
     prefix_start = "Pages, current page: "
@@ -37,9 +52,8 @@ def scrape(url: str, download_path: str=None, cookies: dict={},id: str="", overw
         ncols=1,
         bar_format="{desc} {n_fmt}/{total_fmt}",
     )
-    cookies = json.loads(args.cookies)
     # restore progress if needed
-    if args.resume:
+    if resume:
         try:
             with open(args.progress_file, "rb") as f:
                 pending = pickle.load(f)
@@ -47,24 +61,25 @@ def scrape(url: str, download_path: str=None, cookies: dict={},id: str="", overw
                 pbar.n = pickle.load(f)
                 pbar.total = pbar.n + len(pending)
         except FileNotFoundError:
-            if(args.verbosity>=1):
-                print(f"{args.progress_file} not found, starting from scratch")
-            pending[args.url] = True
+            if verbosity >= 1:
+                print(f"{progress_file} not found, starting from scratch")
+            pending[root_url] = True
     else:
-        pending[args.url] = True  # append to pending
-
+        pending[root_url] = True  # append to pending
     # main loop
     try:
         while pending:
             # inspect a page
-            url, _ = pending.popitem()  # pop entry, ignore value as it is irrelevant
+            url = next(reversed(pending.keys()))  # LIFO order
             req = requests.get(url, cookies=cookies)
             pbar.set_description(prefix_start + url)
-            if args.verbose>=2:
+            if args.verbose >= 2:
                 tqdm.write(f"scraping {url}")
-            # create a folder for the url
-            folder_location = url.replace("https://", "").replace("http://", "")
-            # If there is no such folder, the script will create one automatically
+            # set folder for the url
+            folder_location = os.path.join(
+                download_path, url.replace("https://", "").replace("http://", "")
+            )
+            # create folder if it doesn't exist
             if not os.path.exists(folder_location):
                 os.makedirs(folder_location)
             entries = {}
@@ -74,13 +89,18 @@ def scrape(url: str, download_path: str=None, cookies: dict={},id: str="", overw
                     soup = soup.find(id=args.id)
                 entries = soup.find_all("a")
             except Exception as e:
-                if args.verbose >=1:
+                if verbosity >= 1:
                     tqdm.write(f"error in url {url}")
             # inspect all entries in the page
             for entry in tqdm(
-                entries, desc="Entries in page:", unit=" Entries", ncols=0, leave=False
+                entries,
+                desc="Entries in page:",
+                unit=" Entries",
+                ncols=1,
+                bar_format="{desc} {n_fmt}/{total_fmt}",
+                leave=False,
             ):
-                if args.verbose >=2:
+                if verbosity >= 2:
                     tqdm.write(f'checking {entry["href"]}')
                 if entry["href"][-1] != "/":  # if entry is file and not another page
                     try:
@@ -90,15 +110,15 @@ def scrape(url: str, download_path: str=None, cookies: dict={},id: str="", overw
                     except Exception as e:
                         tqdm.write(e)
                         filename = os.path.join(folder_location, entry["href"])
-                    if args.overwrite or not os.path.exists(filename):  # save file
-                        if args.verbose >=2:
+                    if overwrite or not os.path.exists(filename):  # save file
+                        if verbosity >= 2:
                             tqdm.write(f"downloading {entry.text}")
                         with open(filename, "wb") as f:
                             f.write(requests.get(entry["href"]).content)
-                    elif args.verbose >=1:
+                    elif verbosity >= 1:
                         tqdm.write(f"{entry.text} already exists, skipping.")
                 elif not (
-                    args.no_recursion
+                    no_recursion
                     or url.startswith(entry["href"])
                     or "/./" in entry["href"]
                     or "/../" in entry["href"]
@@ -106,35 +126,38 @@ def scrape(url: str, download_path: str=None, cookies: dict={},id: str="", overw
                 ):
                     pending[entry["href"]] = True  # add to pending
                     pbar.total += 1
-                    if args.verbose >=2:
+                    if verbosity >= 2:
                         tqdm.write(f'added {entry["href"]} to pending stack')
-            if not args.dont_prevent_loops:
+            # finished page
+            del pending[url]
+            if not dont_prevent_loops:
                 completed[url] = True  # add to completed
             pbar.update(1)
 
             # backup management
             backupCounter += 1
-            if args.backup_interval and backupCounter == args.backup_interval:
-                __save_progress(pending, completed, pbar.n, args.progress_file)
-                if args.verbose >=1:
+            if backup_interval and backupCounter == backup_interval:
+                __save_progress(pending, completed, pbar.n, progress_file)
+                if args.verbose >= 1:
                     tqdm.write("Saved backup to progress.dat")
                 backupCounter = 0
-        #download finished
+        # download finished
         pbar.close()
         print("Download finished")
     except KeyboardInterrupt:
         pbar.close()
-        if(input("Save progress? [Y/n]").lower()=="y"):
-            if url:
-                pending[url] = True  # redo last url incase it was partially done
-            __save_progress(pending, completed, pbar.n, args.progress_file)
+        if input("Save progress? [Y/n] ").lower() == "y":
+            __save_progress(pending, completed, pbar.n, progress_file)
             print("Saved progress to file progress.dat")
+
 
 if __name__ == "__main__":
     # argparse
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument("-u", "--url", help="URL to start from.", required=True)
-    parser.add_argument("-p", "--download-path", help="Directory to download files to.")
+    parser.add_argument("-p", "--download-path", help="Directory to download files to. Will use the current directory otherwise.")
     parser.add_argument(
         "-c",
         "--cookies",
@@ -143,7 +166,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--id",
-        help="Component id that contains the files and following paths, use "" to check the whole page, unrecommended.",
+        help="Component id that contains the files and following paths, use "
+        " to check the whole page, unrecommended.",
         required=True,
     )
     parser.add_argument(
@@ -185,8 +209,32 @@ if __name__ == "__main__":
         action="store_true",
     )
     parser.add_argument(
-        "-v", "--verbose", help="Increase output detail. use -vv for even more detail.", action="count", default=0
+        "-v",
+        "--verbose",
+        help="Increase output detail. use -vv for even more detail.",
+        action="count",
+        default=0,
     )
     # read args and call scrape function
     args = parser.parse_args()
-    scrape(args.url, download_path=args.download_path, cookies=args.cookies, id=args.id, overwrite=args.overwrite, resume=args.resume,progress_file=args.progress_file,prevent_loops=args.prevent_loops,verbosity=args.verbosity)
+    cookies = json.loads(args.cookies)
+    if (
+        args.id
+        or input(
+            "You have selected no component id, are you sure you want to scan the whole page? [Y/n] "
+        ).lower
+        == "y"
+    ):
+        scrape(
+            args.url,
+            download_path=args.download_path,
+            cookies=cookies,
+            id=args.id,
+            overwrite=args.overwrite,
+            resume=args.resume,
+            progress_file=args.progress_file,
+            dont_prevent_loops=args.dont_prevent_loops,
+            no_recursion=args.no_recursion,
+            backup_interval=args.backup_interval,
+            verbosity=args.verbose,
+        )
