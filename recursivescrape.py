@@ -157,7 +157,7 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("-u", "--url", help="URL to start from.", required=True)
-    parser.add_argument("-p", "--download-path", help="Directory to download files to. Will use the current directory otherwise.")
+    parser.add_argument("-p", "--download-path", help="Directory to download files to. Will use the current directory by default.")
     parser.add_argument(
         "-c",
         "--cookies",
