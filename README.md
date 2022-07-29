@@ -31,7 +31,7 @@ The available flags are:
 |Flag|Description|Default|
 |---|---|---|
 |-h, --help|Show the help page of the program and all available flags||
-|-u, --url||URL to start from. **REQUIRED**||
+|-u, --url|URL to start from. **REQUIRED**||
 |-p, --download-path|Directory to download files to. Will use the current directory by default.||
 |-c, --cookies| Cookie values as needed in the json format. Example: '{"session":"12kmjyu72yberuykd57"}'|"{}"|
 |--id|Component id that contains the files and following paths. by default will check the whole page.||
