@@ -23,7 +23,10 @@ Binaries are generated using Nuitka.
 ## Usage
 Run the relevant file with any additional flags:
 ```bash
-recursivescrape[.py/.exe/Linux64/arm] [flags]
+recursivescrape[.py/.exe/Linux64] [flags]
+```
+```bash
+python ./recursivescrape.py
 ```
 
 The available flags are:
