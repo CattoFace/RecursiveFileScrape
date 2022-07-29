@@ -70,7 +70,6 @@ recursivescrape.scrape(
 ```
 
 ## To Do
-- Allow method calling to download instead of standalone only. 
 - Utilize async to parallel requests and speed up the process.  
 
 ## Contributing
