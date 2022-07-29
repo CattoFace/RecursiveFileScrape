@@ -137,7 +137,7 @@ def scrape(
             # backup management
             backupCounter += 1
             if backup_interval and backupCounter == backup_interval:
-                __save_progress(pending, completed, pbar.n, progress_file)
+                __save_progress(pending, completed, pbar.n, os.path.join(download_path,progress_file))
                 if args.verbose >= 1:
                     tqdm.write("Saved backup to progress.dat")
                 backupCounter = 0
@@ -147,7 +147,7 @@ def scrape(
     except KeyboardInterrupt:
         pbar.close()
         if input("Save progress? [Y/n] ").lower() == "y":
-            __save_progress(pending, completed, pbar.n, progress_file)
+            __save_progress(pending, completed, pbar.n, os.path.join(download_path,progress_file))
             print("Saved progress to file progress.dat")
 
 
@@ -166,9 +166,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--id",
-        help="Component id that contains the files and following paths, use "
-        " to check the whole page, unrecommended.",
-        required=True,
+        help="Component id that contains the files and following paths. by default will check the whole page.",
     )
     parser.add_argument(
         "-o",
@@ -193,7 +191,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--progress-file",
-        help="The file to save and load progress with.",
+        help="The file to save and load progress with, relative to the download path.",
         default="progress.dat",
     )
     parser.add_argument(
