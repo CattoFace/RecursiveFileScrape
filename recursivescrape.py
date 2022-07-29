@@ -161,7 +161,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c",
         "--cookies",
-        help="Cookie values as needed in the json format.",
+        help="Cookie values as needed in the json format. Example: '{\"session\":\"12kmjyu72yberuykd57\"}'",
         default="{}",
     )
     parser.add_argument(
