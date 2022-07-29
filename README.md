@@ -48,6 +48,7 @@ The available flags are:
 |-v, --verbose|Increase output detail. use -vv for even more detail.||
 
 **Code:**
+
 Place the script in the same folder as your file(or your python import path) and import it:
 ```python
 import recursivescrape
