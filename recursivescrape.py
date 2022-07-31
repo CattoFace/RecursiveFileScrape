@@ -52,7 +52,7 @@ def scrape(
         ncols=1,
         bar_format="{desc} {n_fmt}/{total_fmt}",
     )
-    progress_path = os.path.join(download_path,progress_file)
+    progress_path = os.path.join(download_path, progress_file)
     # restore progress if needed
     if resume:
         try:
@@ -79,28 +79,37 @@ def scrape(
             file_path = os.path.join(
                 download_path, url.replace("https://", "").replace("http://", "")
             )
-            if(os.path.isfile(file_path) and not overwrite):
+            if os.path.isfile(file_path) and not overwrite:
                 if verbosity >= 1:
                     tqdm.write(f"{file_path.split('/')[-1]} already exists, skipping")
             else:
                 req = requests.get(url, cookies=cookies)
-                if('text/html' in req.headers["content-type"]): # url is webpage
-                    if not (no_recursion and pbar.n>=1): # if no recusion, only scrape one page
+                if "text/html" in req.headers["content-type"]:  # url is webpage
+                    if not (
+                        no_recursion and pbar.n >= 1
+                    ):  # if no recusion, only scrape one page
                         try:
                             soup = BeautifulSoup(req.text, "html.parser")
                             if args.id:
                                 soup = soup.find(id=args.id)
-                            for url in filter(lambda url: not ("/./" in url or "/../" in url or url in completed),list(map(lambda a: a["href"],soup.find_all("a")))): # add all links in url to pending
+                            for url in filter(
+                                lambda url: not (
+                                    "/./" in url or "/../" in url or url in completed
+                                ),
+                                list(map(lambda a: a["href"], soup.find_all("a"))),
+                            ):  # add all links in url to pending
                                 pending[url] = True
-                                pbar.total+=1
-                                if verbosity>=2:
+                                pbar.total += 1
+                                if verbosity >= 2:
                                     tqdm.write(f"added {url} to pending")
                         except Exception as e:
                             if verbosity >= 1:
                                 tqdm.write(f"error in url {url}")
-                else: # url is a file
+                else:  # url is a file
                     folder_location = "/".join(file_path.split("/")[:-1])
-                    if not os.path.exists(folder_location): # create folder if it doesn't exist
+                    if not os.path.exists(
+                        folder_location
+                    ):  # create folder if it doesn't exist
                         os.makedirs(folder_location)
                     if verbosity >= 1:
                         tqdm.write(f"downloading {file_path.split('/')[-1]}")
@@ -136,11 +145,15 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("-u", "--url", help="URL to start from.", required=True)
-    parser.add_argument("-p", "--download-path", help="Directory to download files to. Will use the current directory by default.")
+    parser.add_argument(
+        "-p",
+        "--download-path",
+        help="Directory to download files to. Will use the current directory by default.",
+    )
     parser.add_argument(
         "-c",
         "--cookies",
-        help="Cookie values as needed in the json format. Example: '{\"session\":\"12kmjyu72yberuykd57\"}'",
+        help='Cookie values as needed in the json format. Example: \'{"session":"12kmjyu72yberuykd57"}\'',
         default="{}",
     )
     parser.add_argument(
