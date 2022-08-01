@@ -24,7 +24,7 @@ Binaries are generated using Nuitka.
 **Command:**
 Run the relevant file with any additional flags:
 ```bash
-recursivescrape[.py/.exe/Linux64] [flags]
+./recursivescrape[.py/.exe/Linux64] [flags]
 ```
 ```bash
 python ./recursivescrape.py [flags]
