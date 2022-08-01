@@ -24,7 +24,7 @@ Binaries are generated using Nuitka.
 **Command:**
 Run the relevant file with any additional flags:
 ```bash
-recursivescrape[.py/.exe/Linux64] [flags]
+./recursivescrape[.py/.exe/Linux64] [flags]
 ```
 ```bash
 python ./recursivescrape.py [flags]
@@ -74,7 +74,7 @@ recursivescrape.scrape(
 Run the relevant script from the bin folder:
 ```bash
 ./generateLinuxBin.sh
-generateWindowsBin.bat
+.\generateWindowsBin.bat
 ```
 The script will create a venv, install all the needed packages into it, run the compile command and save the binary in the current folder.
 The compilation will include a few small downloads depending on the platform.
@@ -82,11 +82,8 @@ The compilation will include a few small downloads depending on the platform.
 After compilation run the relevant clean script to remove the unneeded files:
 ```bash
 ./cleanLinuxBuildFiles.sh
-cleanWindowsBuildFiles.bat
+.\cleanWindowsBuildFiles.bat
 ```
-
-## To Do
-- Utilize async to parallel requests and speed up the process.  
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
