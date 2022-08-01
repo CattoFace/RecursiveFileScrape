@@ -2,16 +2,25 @@
 """Recursively downloads files from a webpage and links within that page."""
 
 __author__ = "Barr Israel"
-__version__ = "1.1"
+__version__ = "2"
 
-import requests
+import enum
 import sys
 import os
 import argparse
 from bs4 import BeautifulSoup
-from tqdm import tqdm
+from tqdm.asyncio import tqdm
 import pickle
 import json
+from itertools import islice
+import warnings
+import aiofiles
+import aiohttp
+import asyncio
+
+warnings.filterwarnings(
+    "ignore", category=DeprecationWarning
+)  # for aiohttp depracting creating a session without "with" and asyncio "there is no current event loop"
 
 
 def __save_progress(
@@ -22,6 +31,78 @@ def __save_progress(
         pickle.dump(pending, f)
         pickle.dump(completed_dict, f)
         pickle.dump(completed_pages, f)
+
+
+async def __scrape_page(
+    url: str,
+    download_path: str,
+    cookies: dict,
+    id: str,
+    overwrite: bool,
+    progress_file: str,
+    dont_prevent_loops: bool,
+    no_recursion: bool,
+    verbosity: int,
+    pending: dict,
+    completed: dict,
+    session: aiohttp.ClientSession,
+    pbar: tqdm,
+):
+
+    if args.verbose >= 2:
+        tqdm.write(f"scraping {url}")
+    # set and check file_path in order to not redownload files
+    file_path = os.path.join(
+        download_path, url.replace("https://", "").replace("http://", "")
+    )
+    if os.path.isfile(file_path) and not overwrite:
+        if verbosity >= 1:
+            tqdm.write(f"{file_path.split('/')[-1]} already exists, skipping")
+    else:
+        try:
+            soup = None
+            content = None
+            async with session.get(url) as res:
+                content = await res.read()
+                soup = BeautifulSoup(content, features="lxml")
+            if "text/html" in res.headers["content-type"]:  # url is webpage
+                if not (
+                    no_recursion and pbar.n >= 1
+                ):  # if no recusion, only scrape one page
+                    try:
+                        if id:
+                            soup = soup.find(id=id)
+                        for entry in filter(
+                            lambda url: not (
+                                "/./" in url or "/../" in url or url in completed
+                            ),
+                            list(map(lambda a: a["href"], soup.find_all("a"))),
+                        ):  # add all links in url to pending
+                            pending[entry] = True
+                            pbar.total += 1
+                            if verbosity >= 2:
+                                tqdm.write(f"added {entry} to pending")
+                    except:
+                        tqdm.write(f"Error parsing {url}")
+                        return url
+            else:  # url is a file
+                folder_location = "/".join(file_path.split("/")[:-1])
+                if not os.path.exists(
+                    folder_location
+                ):  # create folder if it doesn't exist
+                    os.makedirs(folder_location)
+                if verbosity >= 1:
+                    tqdm.write(f"downloading {file_path.split('/')[-1]}")
+                async with aiofiles.open(file_path, "wb") as f:
+                    await f.write(content)
+        except Exception as e:
+            if verbosity >= 1:
+                tqdm.write(f"error getting {url}, retrying")
+            return None  # return None to mark no page finished
+        # finished page
+        if not dont_prevent_loops:
+            completed[url] = True  # add to completed
+    return url  # return url to tell the update loop which pages finished
 
 
 def scrape(
@@ -36,6 +117,7 @@ def scrape(
     no_recursion: bool = False,
     backup_interval: int = 0,
     verbosity: int = 0,
+    concurrent: int = 20,
 ):
     pending = {}
     completed = {}
@@ -43,7 +125,7 @@ def scrape(
         download_path = os.getcwd()
     print("Total pages count will increase as more pages are found")
     url = ""
-    prefix_start = "Pages, current page: "
+    prefix_start = "Pages and files, current page: "
     backupCounter = 0
     pbar = tqdm(
         total=1,
@@ -53,7 +135,6 @@ def scrape(
         bar_format="{desc} {n_fmt}/{total_fmt}",
     )
     progress_path = os.path.join(download_path, progress_file)
-    # restore progress if needed
     if resume:
         try:
             with open(progress_path, "rb") as f:
@@ -63,76 +144,58 @@ def scrape(
                 pbar.total = pbar.n + len(pending)
         except FileNotFoundError:
             if verbosity >= 1:
-                print(f"{progress_file} not found, starting from scratch")
+                tqdm.write(f"{progress_file} not found, starting from scratch")
             pending[root_url] = True
     else:
         pending[root_url] = True  # append to pending
-    # main loop
     try:
+        # main loop
+        loop = asyncio.get_event_loop()
+        session = aiohttp.ClientSession(cookies=cookies)
         while pending:
+            tasks = []
             # inspect a page
-            url = next(reversed(pending.keys()))  # LIFO order
-            pbar.set_description(prefix_start + url)
-            if args.verbose >= 2:
-                tqdm.write(f"scraping {url}")
-            # set and check file_path in order to not redownload files
-            file_path = os.path.join(
-                download_path, url.replace("https://", "").replace("http://", "")
-            )
-            if os.path.isfile(file_path) and not overwrite:
-                if verbosity >= 1:
-                    tqdm.write(f"{file_path.split('/')[-1]} already exists, skipping")
-            else:
-                req = requests.get(url, cookies=cookies)
-                if "text/html" in req.headers["content-type"]:  # url is webpage
-                    if not (
-                        no_recursion and pbar.n >= 1
-                    ):  # if no recusion, only scrape one page
-                        try:
-                            soup = BeautifulSoup(req.text, "html.parser")
-                            if args.id:
-                                soup = soup.find(id=args.id)
-                            for url in filter(
-                                lambda url: not (
-                                    "/./" in url or "/../" in url or url in completed
-                                ),
-                                list(map(lambda a: a["href"], soup.find_all("a"))),
-                            ):  # add all links in url to pending
-                                pending[url] = True
-                                pbar.total += 1
-                                if verbosity >= 2:
-                                    tqdm.write(f"added {url} to pending")
-                        except Exception as e:
-                            if verbosity >= 1:
-                                tqdm.write(f"error in url {url}")
-                else:  # url is a file
-                    folder_location = "/".join(file_path.split("/")[:-1])
-                    if not os.path.exists(
-                        folder_location
-                    ):  # create folder if it doesn't exist
-                        os.makedirs(folder_location)
-                    if verbosity >= 1:
-                        tqdm.write(f"downloading {file_path.split('/')[-1]}")
-                    with open(file_path, "wb") as f:
-                        f.write(req.content)
-
-            # finished page
-            del pending[url]
-            if not dont_prevent_loops:
-                completed[url] = True  # add to completed
-            pbar.update(1)
-
+            for url in islice(reversed(pending.keys()), concurrent):
+                # create url task and add to tasks
+                pbar.set_description(
+                    prefix_start + (".." + url[-100:] if len(url) >= 102 else url)
+                )
+                task = __scrape_page(
+                    url,
+                    download_path,
+                    cookies,
+                    id,
+                    overwrite,
+                    progress_file,
+                    dont_prevent_loops,
+                    no_recursion,
+                    verbosity,
+                    pending,
+                    completed,
+                    session,
+                    pbar,
+                )
+                tasks.append(task)
+            for url in loop.run_until_complete(
+                asyncio.gather(*tasks)
+            ):  # update as tasks are finished
+                if url:  # on success
+                    del pending[url]
+                    backupCounter += 1
+                    pbar.update(1)
             # backup management
-            backupCounter += 1
-            if backup_interval and backupCounter == backup_interval:
+            if backup_interval and backupCounter >= backup_interval:
                 __save_progress(pending, completed, pbar.n, progress_path)
                 if args.verbose >= 1:
                     tqdm.write("Saved backup to progress.dat")
                 backupCounter = 0
+
         # download finished
+        asyncio.run(session.close())
         pbar.close()
         print("Download finished")
-    except KeyboardInterrupt:
+
+    except KeyboardInterrupt:  # catching outside the function because KeyboardIntrrupt is not handled correctly inside tasks
         pbar.close()
         if input("Save progress? [Y/n] ").lower() != "n":
             __save_progress(pending, completed, pbar.n, progress_path)
@@ -205,6 +268,12 @@ if __name__ == "__main__":
         action="count",
         default=0,
     )
+    parser.add_argument(
+        "--concurrent",
+        help="How many pages to download concurrently at most",
+        type=int,
+        default=20,
+    )
     # read args and call scrape function
     args = parser.parse_args()
     cookies = json.loads(args.cookies)
@@ -212,7 +281,7 @@ if __name__ == "__main__":
         args.id
         or input(
             "You have selected no component id, are you sure you want to scan the whole page? [Y/n] "
-        ).lower
+        ).lower()
         != "n"
     ):
         scrape(
@@ -227,4 +296,5 @@ if __name__ == "__main__":
             no_recursion=args.no_recursion,
             backup_interval=args.backup_interval,
             verbosity=args.verbose,
+            concurrent=args.concurrent,
         )

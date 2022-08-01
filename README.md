@@ -45,7 +45,8 @@ The available flags are:
 |-f, --progress-file|The file to save and load progress with, relative to the download path.|progress.dat|
 |-l, --dont-prevent-loops|Save memory by not remembering past pages but increase the chance of checking pages multiple times, do not add if there are any loops in the directory. Changing this flag between resumed runs results in undefined behaviour.|False|
 |-nr, --no-recursion|Only download files from the given url and do not follow links recursively|False|
-|-v, --verbose|Increase output detail. use -vv for even more detail.||
+|--concurrent|Amount of pages and files to download concurrently at most|20|
+|-v, --verbose|Increase output detail. use -vv for even more detail.|
 
 **Code:**
 
@@ -66,7 +67,8 @@ recursivescrape.scrape(
                 dont_prevent_loops: bool = True,
                 no_recursion: bool = False,
                 backup_interval: int = 0,
-                verbosity: int = 0)
+                verbosity: int = 0,
+                concurrent: int = 20)
 ```
 
 ## To Do
