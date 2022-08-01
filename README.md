@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 **Binary:**
 
-If a binary has been precompiled for your platform, it will be available in the releases section and no further steps are required.
+If a binary has been precompiled for your platform, it will be available in the releases section and no further steps are required(Most recent binaries are also available inside the bin folder).
 
 Binaries are generated using Nuitka.
 
@@ -69,6 +69,20 @@ recursivescrape.scrape(
                 backup_interval: int = 0,
                 verbosity: int = 0,
                 concurrent: int = 20)
+```
+## Build Binary From Source
+Run the relevant script from the bin folder:
+```bash
+./generateLinuxBin.sh
+generateWindowsBin.bat
+```
+The script will create a venv, install all the needed packages into it, run the compile command and save the binary in the current folder.
+The compilation will include a few small downloads depending on the platform.
+
+After compilation run the relevant clean script to remove the unneeded files:
+```bash
+./cleanLinuxBuildFiles.sh
+cleanWindowsBuildFiles.bat
 ```
 
 ## To Do
