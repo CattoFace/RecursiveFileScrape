@@ -2,7 +2,7 @@
 """Recursively downloads files from a webpage and links within that page."""
 
 __author__ = "Barr Israel"
-__version__ = "2"
+__version__ = "2.1"
 
 import enum
 import sys
@@ -97,7 +97,7 @@ async def __scrape_page(
                     await f.write(content)
         except Exception as e:
             if verbosity >= 1:
-                tqdm.write(f"error getting {url}, retrying")
+                tqdm.write(f"error getting {url}, retrying:\n"+str(e))
             return None  # return None to mark no page finished
         # finished page
         if not dont_prevent_loops:
@@ -132,7 +132,7 @@ def scrape(
         desc=prefix_start,
         unit=" Pages",
         ncols=1,
-        bar_format="{desc} {n_fmt}/{total_fmt}",
+        bar_format="{desc} {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]",
     )
     progress_path = os.path.join(download_path, progress_file)
     if resume:
@@ -158,7 +158,7 @@ def scrape(
             for url in islice(reversed(pending.keys()), concurrent):
                 # create url task and add to tasks
                 pbar.set_description(
-                    prefix_start + (".." + url[-100:] if len(url) >= 102 else url)
+                    prefix_start + (".." + url[-80:] if len(url) >= 82 else url)
                 )
                 task = __scrape_page(
                     url,
