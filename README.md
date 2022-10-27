@@ -29,7 +29,7 @@ Run the relevant file with any additional flags:
 ```bash
 python ./recursivescrape.py [flags]
 ```
-
+In cmd only(and not powershell), you need to use the format {\"session\":\"12kmjyu72yberuykd57\"} (no ' around the value) for cookies instead and I would love to know why.
 The available flags are:
 
 |Flag|Description|Default|
