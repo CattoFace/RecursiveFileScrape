@@ -178,7 +178,7 @@ def scrape(
                 tasks.append(task)
             for url in loop.run_until_complete(
                 asyncio.gather(*tasks)
-            ):  # update as tasks are finished
+            ):  # update finished tasks
                 if url:  # on success
                     del pending[url]
                     backupCounter += 1
