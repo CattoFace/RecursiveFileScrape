@@ -272,7 +272,7 @@ if __name__ == "__main__":
         "--concurrent",
         help="How many pages to download concurrently at most",
         type=int,
-        default=20,
+        default=10,
     )
     # read args and call scrape function
     args = parser.parse_args()
