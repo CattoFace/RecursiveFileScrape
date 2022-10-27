@@ -2,7 +2,7 @@
 """Recursively downloads files from a webpage and links within that page."""
 
 __author__ = "Barr Israel"
-__version__ = "2.1"
+__version__ = "2.1.1"
 
 import enum
 import sys
