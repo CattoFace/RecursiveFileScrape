@@ -68,7 +68,7 @@ recursivescrape.scrape(
                 no_recursion: bool = False,
                 backup_interval: int = 0,
                 verbosity: int = 0,
-                concurrent: int = 20)
+                concurrent: int = 10)
 ```
 ## Build Binary From Source
 Run the relevant script from the bin folder:
