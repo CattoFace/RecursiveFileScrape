@@ -29,7 +29,6 @@ Run the relevant file with any additional flags:
 ```bash
 python ./recursivescrape.py [flags]
 ```
-In cmd only(and not powershell), you need to use the format {\"session\":\"12kmjyu72yberuykd57\"} (no ' around the value) for cookies instead and I would love to know why.
 
 The available flags are:
 
@@ -38,7 +37,7 @@ The available flags are:
 |-h, --help|Show the help page of the program and all available flags||
 |-u, --url|URL to start from. **REQUIRED**||
 |-p, --download-path|Directory to download files to. Will use the current directory by default.||
-|-c, --cookies| Cookie values as needed in the json format. Example: '{"session":"12kmjyu72yberuykd57"}'|"{}"|
+|-c, --cookies| Cookie values as needed in the json format. Example: {\"session\":\"12kmjyu72yberuykd57\"}|{}|
 |--id|Component id that contains the files and following paths. by default will check the whole page.||
 |-o, --overwrite|Download and overwrite existing files. If not added, files that already exist will be skipped.|False|
 |-r, --resume|Resume previous progress from file PROGRESS_FILE, will ignore url and no-recursion arguments if file is found.|False|
