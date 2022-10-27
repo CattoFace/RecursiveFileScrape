@@ -50,7 +50,7 @@ async def __scrape_page(
 ):
 
     if args.verbose >= 2:
-        tqdm.write(f"scraping {url}")
+        tqdm.write(f"Scraping {url}")
     # set and check file_path in order to not redownload files
     file_path = os.path.join(
         download_path, url.replace("https://", "").replace("http://", "")
@@ -92,12 +92,12 @@ async def __scrape_page(
                 ):  # create folder if it doesn't exist
                     os.makedirs(folder_location)
                 if verbosity >= 1:
-                    tqdm.write(f"downloading {file_path.split('/')[-1]}")
+                    tqdm.write(f"Downloaded {file_path.split('/')[-1]}")
                 async with aiofiles.open(file_path, "wb") as f:
                     await f.write(content)
         except Exception as e:
             if verbosity >= 1:
-                tqdm.write(f"error getting {url}, retrying:\n"+str(e))
+                tqdm.write(f"Error getting {url}, retrying:\n"+str(e))
             return None  # return None to mark no page finished
         # finished page
         if not dont_prevent_loops:
